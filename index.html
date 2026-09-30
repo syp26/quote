@@ -372,9 +372,9 @@ textarea{resize:vertical;min-height:76px}
 <!-- OVERLAY -->
 <div class="ov" id="ov">
   <div class="ov-box">
-    <span class="ov-icon">✅</span>
-    <h2>견적 요청 완료!</h2>
-    <p>담당자가 확인 후 <strong>영업일 1일 내</strong> 정확한 견적을 회신드리겠습니다.</p>
+    <span class="ov-icon" id="ovIcon">✅</span>
+    <h2 id="ovTitle">견적 요청 완료!</h2>
+    <p id="ovMsg">담당자가 확인 후 <strong>영업일 1일 내</strong> 정확한 견적을 회신드리겠습니다.</p>
     <div class="ov-ref" id="ovRef">접수번호: #-------</div>
     <div class="ov-summary" id="ovSum"></div>
     <br><button class="btn-ok" onclick="closeOv()">확인</button>
@@ -554,10 +554,16 @@ function doSubmit(){
   btn.disabled=true; btn.textContent='⏳ 전송 중...';
 
   fetch(FORMSPREE,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)})
-    .catch(()=>{})
-    .finally(()=>{
+    .then(res=>res.ok)
+    .catch(()=>false)
+    .then(ok=>{
       btn.disabled=false; btn.innerHTML='📨 견적 요청하기';
-      document.getElementById('ovRef').textContent='접수번호: '+ref;
+      document.getElementById('ovIcon').textContent = ok ? '✅' : '⚠️';
+      document.getElementById('ovTitle').textContent = ok ? '견적 요청 완료!' : '견적 요청이 전송되지 않았습니다';
+      document.getElementById('ovMsg').innerHTML = ok
+        ? '담당자가 확인 후 <strong>영업일 1일 내</strong> 정확한 견적을 회신드리겠습니다.'
+        : '인터넷 연결 문제로 접수되지 않았습니다. 입력하신 내용은 그대로 남아 있으니 <strong>다시 시도</strong>하시거나 <a href="tel:0222660380"><strong>02-2266-0380</strong></a>으로 전화 주세요.';
+      document.getElementById('ovRef').textContent = ok ? '접수번호: '+ref : '전화 문의 시 아래 내용을 알려주세요';
       document.getElementById('ovSum').innerHTML=
         `<b>박스:</b> ${btype}<br><b>사이즈:</b> ${w}×${h}×${d}mm / ${(+qty).toLocaleString()}개<br>`+
         `<b>재질:</b> ${mat} / 인쇄 ${print}도 / ${coat}<br>`+
