@@ -388,6 +388,44 @@ textarea{resize:vertical;min-height:76px}
 // 1) Formspree에서 발급받은 URL로 교체 (https://formspree.io)
 const FORMSPREE = 'https://formspree.io/f/mbdpojdl';
 
+/* ---------- 유입 경로 ----------
+   링크 끝에 ?from=코드 를 붙이면 문의·견적 메일에 어디서 왔는지 표시됩니다.
+   코드를 추가하려면 아래 목록에 한 줄 더 넣으면 됩니다. */
+const SOURCE_NAMES = {
+  blog: '판도라 블로그',
+  mainblog: '메인 블로그(신용종합패키지)',
+  main: '메인 홈페이지(카페24)',
+  kakao: '카카오톡 채널',
+  insta: '인스타그램',
+  youtube: '유튜브'
+};
+function detectSource() {
+  const q = new URLSearchParams(location.search);
+  const code = (q.get('from') || '').trim();
+  if (code) return SOURCE_NAMES[code] || code;
+  let host = '';
+  try { host = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) {}
+  if (!host) return '직접 방문';
+  if (host.includes('blog.naver')) return '네이버 블로그(링크 표시 없음)';
+  if (host.includes('search.naver') || host.includes('naver.com')) return '네이버 검색';
+  if (host.includes('google')) return '구글 검색';
+  if (host.includes('daum') || host.includes('kakao')) return '다음·카카오';
+  if (host.includes('instagram')) return '인스타그램';
+  if (host.includes('youtube')) return '유튜브';
+  return host;
+}
+
+// 판도라 사이트에서 넘어온 경우(src)는 그 값을 그대로 사용
+const SOURCE = (() => {
+  const src = new URLSearchParams(location.search).get('src');
+  if (src) return src;
+  let host = '';
+  try { host = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) {}
+  if (host === location.hostname && !new URLSearchParams(location.search).get('from')) return '판도라 사이트';
+  return detectSource();
+})();
+
+
 // 2) 단가 계수 (실제 견적과 맞게 조정 가능)
 const MAT = {'':0.85,'골판지':0.65,'SC마니라':1.0,'아이보리':1.38,'로얄아이보리':1.85};
 const BOX = {'B형박스':1.0,'G|C형박스':1.1,'M형박스':1.3,'R형박스':0.9,'D형박스':0.8,'A형박스':1.4,'H형박스':1.5,'Y형박스':0.7,'S형(슬리브)':1.1,'S형(PET)':1.3,'종이패드':0.6};
@@ -502,6 +540,7 @@ function doSubmit(){
     납기:document.querySelector('input[name=deadline]').value||'-',
     회신방법:document.querySelector('select[name=reply]').value,
     요청사항:document.querySelector('textarea[name=memo]').value||'없음',
+    유입경로:SOURCE,
   };
 
   // localStorage 저장 (관리자 페이지용)
