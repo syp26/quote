@@ -179,7 +179,7 @@ textarea{resize:vertical;min-height:76px}
   <div class="hero-inner">
     <div class="hero-tag">📦 Real-time Quote</div>
     <h1>맞춤 박스<br><em>바로 견적</em> 받기</h1>
-    <p class="hero-desc">박스 형태·사이즈·수량·후가공을 선택하면<br>예상 단가를 즉시 확인하실 수 있습니다.<br>견적 요청 시 <b style="color:#fff">영업일 1일 내</b> 정확한 견적을 드립니다.</p>
+    <p class="hero-desc">박스 형태·사이즈·수량·후가공을 선택하면<br><b style="color:#f59e0b">예상 최저 단가</b>를 즉시 확인하실 수 있습니다.<br>수량이 많을수록 단가가 드라마틱하게 낮아집니다.<br>견적 요청 시 <b style="color:#fff">영업일 1일 내</b> 정확한 견적을 드립니다.</p>
     <div class="hero-pills">
       <div class="pill">박스 <b>11가지</b> 유형</div>
       <div class="pill">후가공 <b>12종</b> 선택</div>
@@ -198,17 +198,17 @@ textarea{resize:vertical;min-height:76px}
   <div class="ch"><div class="cn">1</div><div><div class="ct">박스 유형</div><div class="cs">원하시는 형태를 선택하세요</div></div></div>
   <div class="cb">
     <div class="bx-grid">
-      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="B형박스"><span class="bi">🧴</span><div class="bn">B형</div><div class="bsub">단상자</div></label>
-      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="G|C형박스"><span class="bi">📦</span><div class="bn">G|C형</div><div class="bsub">골판지</div></label>
-      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="M형박스"><span class="bi">🎁</span><div class="bn">M형</div><div class="bsub">끈 손잡이형</div></label>
+      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="B형박스"><span class="bi">🎁</span><div class="bn">B형</div><div class="bsub">일반 뚜껑</div></label>
+      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="G|C형박스"><span class="bi">🗃️</span><div class="bn">G|C형</div><div class="bsub">자석 싸바리</div></label>
+      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="M형박스"><span class="bi">📫</span><div class="bn">M형</div><div class="bsub">서랍형</div></label>
       <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="R형박스"><span class="bi">🛍️</span><div class="bn">R형</div><div class="bsub">쇼핑백형</div></label>
-      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="D형박스"><span class="bi">✉️</span><div class="bn">D형</div><div class="bsub">디스플레이</div></label>
-      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="A형박스"><span class="bi">🚚</span><div class="bn">A형</div><div class="bsub">택배형</div></label>
-      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="H형박스"><span class="bi">🧺</span><div class="bn">H형</div><div class="bsub">손잡이형</div></label>
-      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="Y형박스"><span class="bi">🗃️</span><div class="bn">Y형</div><div class="bsub">일반 뚜껑</div></label>
-      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="S형(슬리브)"><span class="bi">📜</span><div class="bn">S형</div><div class="bsub">슬리브형</div></label>
-      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="S형(PET)"><span class="bi">🔲</span><div class="bn">PET</div><div class="bsub">투명창</div></label>
-      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="종이패드"><span class="bi">🧱</span><div class="bn">종이패드</div><div class="bsub">내부완충</div></label>
+      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="D형박스"><span class="bi">🗄️</span><div class="bn">D형</div><div class="bsub">디스플레이</div></label>
+      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="A형박스"><span class="bi">📐</span><div class="bn">A형</div><div class="bsub">정육면체</div></label>
+      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="H형박스"><span class="bi">🏠</span><div class="bn">H형</div><div class="bsub">집 모양</div></label>
+      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="Y형박스"><span class="bi">🎀</span><div class="bn">Y형</div><div class="bsub">소형 선물</div></label>
+      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="S형(슬리브)"><span class="bi">📜</span><div class="bn">S형 슬리브</div><div class="bsub">밴드형</div></label>
+      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="S형(PET)"><span class="bi">🔲</span><div class="bn">S형 PET</div><div class="bsub">투명창</div></label>
+      <label class="bx" onclick="selBox(this)"><input type="radio" name="btype" value="종이패드"><span class="bi">🧱</span><div class="bn">종이패드</div><div class="bsub">내부 완충</div></label>
     </div>
   </div>
 </div>
@@ -339,10 +339,10 @@ textarea{resize:vertical;min-height:76px}
     <div class="pcard-body">
 
       <div class="ptag">
-        <div class="ptag-label">예상 단가 범위 (VAT제외·마진포함)</div>
+        <div class="ptag-label">💰 예상 단가 (VAT 별도)</div>
         <div class="price-num" id="prNum"><div class="price-empty"><span>📦</span>옵션을 선택하세요</div></div>
-        <div class="price-unit" id="prUnit" style="display:none">원 / EA (예상 범위)</div>
-        <div class="price-note" id="prNote" style="display:none">※ 정확한 금액은 견적 요청 후 회신드립니다</div>
+        <div class="price-unit" id="prUnit" style="display:none">원 / EA</div>
+        <div class="price-note" id="prNote" style="display:none">※ 대량주문 시 추가 할인 가능 · 정확한 견적은 문의 후 안내</div>
       </div>
 
       <div id="srWrap" style="display:none">
@@ -354,11 +354,13 @@ textarea{resize:vertical;min-height:76px}
           <div class="sr"><span class="srk">인쇄/코팅</span><span class="srv" id="sr5">-</span></div>
           <div class="sr"><span class="srk">후가공</span><span class="srv" id="sr6">없음</span></div>
         </div>
-        <span class="tbl-label">수량별 예상 단가 비교</span>
+        <span class="tbl-label">📊 수량별 예상 단가 비교</span>
+        <div id="savingMsg" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:4px;padding:9px 12px;font-size:12px;color:#166534;margin-bottom:10px;line-height:1.6"></div>
         <table class="qty-tbl">
-          <thead><tr><th class="ql">수량</th><th>예상 단가 (원/EA)</th></tr></thead>
+          <thead><tr><th class="ql">수량</th><th>예상 단가 (원/EA)</th><th>절감</th></tr></thead>
           <tbody id="qtbody"></tbody>
         </table>
+        <div style="font-size:10px;color:var(--dim);margin-top:-8px;margin-bottom:10px">※ 수량이 많을수록 단가가 크게 낮아집니다</div>
       </div>
 
       <button type="button" class="btn-sub" id="sbtn" onclick="doSubmit()">📨 견적 요청하기</button>
@@ -372,9 +374,9 @@ textarea{resize:vertical;min-height:76px}
 <!-- OVERLAY -->
 <div class="ov" id="ov">
   <div class="ov-box">
-    <span class="ov-icon" id="ovIcon">✅</span>
-    <h2 id="ovTitle">견적 요청 완료!</h2>
-    <p id="ovMsg">담당자가 확인 후 <strong>영업일 1일 내</strong> 정확한 견적을 회신드리겠습니다.</p>
+    <span class="ov-icon">✅</span>
+    <h2>견적 요청 완료!</h2>
+    <p>담당자가 확인 후 <strong>영업일 1일 내</strong> 정확한 견적을 회신드리겠습니다.</p>
     <div class="ov-ref" id="ovRef">접수번호: #-------</div>
     <div class="ov-summary" id="ovSum"></div>
     <br><button class="btn-ok" onclick="closeOv()">확인</button>
@@ -388,47 +390,9 @@ textarea{resize:vertical;min-height:76px}
 // 1) Formspree에서 발급받은 URL로 교체 (https://formspree.io)
 const FORMSPREE = 'https://formspree.io/f/mbdpojdl';
 
-/* ---------- 유입 경로 ----------
-   링크 끝에 ?from=코드 를 붙이면 문의·견적 메일에 어디서 왔는지 표시됩니다.
-   코드를 추가하려면 아래 목록에 한 줄 더 넣으면 됩니다. */
-const SOURCE_NAMES = {
-  blog: '판도라 블로그',
-  mainblog: '메인 블로그(신용종합패키지)',
-  main: '메인 홈페이지(카페24)',
-  kakao: '카카오톡 채널',
-  insta: '인스타그램',
-  youtube: '유튜브'
-};
-function detectSource() {
-  const q = new URLSearchParams(location.search);
-  const code = (q.get('from') || '').trim();
-  if (code) return SOURCE_NAMES[code] || code;
-  let host = '';
-  try { host = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) {}
-  if (!host) return '직접 방문';
-  if (host.includes('blog.naver')) return '네이버 블로그(링크 표시 없음)';
-  if (host.includes('search.naver') || host.includes('naver.com')) return '네이버 검색';
-  if (host.includes('google')) return '구글 검색';
-  if (host.includes('daum') || host.includes('kakao')) return '다음·카카오';
-  if (host.includes('instagram')) return '인스타그램';
-  if (host.includes('youtube')) return '유튜브';
-  return host;
-}
-
-// 판도라 사이트에서 넘어온 경우(src)는 그 값을 그대로 사용
-const SOURCE = (() => {
-  const src = new URLSearchParams(location.search).get('src');
-  if (src) return src;
-  let host = '';
-  try { host = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) {}
-  if (host === location.hostname && !new URLSearchParams(location.search).get('from')) return '판도라 사이트';
-  return detectSource();
-})();
-
-
 // 2) 단가 계수 (실제 견적과 맞게 조정 가능)
 const MAT = {'':0.85,'골판지':0.65,'SC마니라':1.0,'아이보리':1.38,'로얄아이보리':1.85};
-const BOX = {'B형박스':1.0,'G|C형박스':1.1,'M형박스':1.3,'R형박스':0.9,'D형박스':0.8,'A형박스':1.4,'H형박스':1.5,'Y형박스':0.7,'S형(슬리브)':1.1,'S형(PET)':1.3,'종이패드':0.6};
+const BOX = {'B형박스':1.0,'G|C형박스':2.2,'M형박스':1.3,'R형박스':0.9,'D형박스':0.8,'A형박스':1.4,'H형박스':1.5,'Y형박스':0.7,'S형(슬리브)':1.1,'S형(PET)':1.3,'종이패드':0.6};
 const QD  = {300:1.45,500:1.25,700:1.15,1000:1.0,1500:.92,2000:.86,3000:.80,5000:.74,10000:.68};
 const PP  = {'박/형압':150,'합지':110,'접착':350,'끈/손잡이':40,'실크스크린':120,'싸개지':1000,'표지부착':600,'도무송':140,'내부패드':80,'자석':200,'엠보싱':180,'창문PVC':250};
 const PR  = {'0':0,'1':80,'2':130,'3':180,'4':250};
@@ -450,7 +414,8 @@ function getEA(qty,btype,mat,print,ppList){
   const pAdd=PR[print]||0;
   const ppAdd=ppList.reduce((s,p)=>s+(PP[p]||0),0);
   const mold=100000/qty;
-  return (base+pAdd+ppAdd+mold)*1.5;
+  // 고객 표시용 단가: 마진 10% 수준으로 낮춰 매력적인 가격 제시
+  return (base+pAdd+ppAdd+mold)*1.1;
 }
 
 function calc(){
@@ -481,23 +446,43 @@ function calc(){
     return;
   }
 
-  const lo=Math.round(ea*.82/10)*10, hi=Math.round(ea*1.18/10)*10;
-  document.getElementById('prNum').innerHTML=`${lo.toLocaleString()} ~ ${hi.toLocaleString()}`;
+  const lo=Math.round(ea*.85/10)*10, hi=Math.round(ea*1.15/10)*10;
+  // 최저가 앵커: "최저 XXX원~" 심리적 유인
+  document.getElementById('prNum').innerHTML=`<span style="font-size:14px;color:var(--muted);font-family:'Noto Sans KR';font-weight:400">최저 </span>${lo.toLocaleString()}<span style="font-size:22px">~</span>`;
   document.getElementById('prUnit').style.display='block';
   document.getElementById('prNote').style.display='block';
   document.getElementById('srWrap').style.display='block';
 
-  // 수량 비교표
+  // 수량 비교표 (절감률 강조)
   const tbody=document.getElementById('qtbody'); tbody.innerHTML='';
+  const base300=getEA(300,btype,mat,print,ppList);
   [300,500,1000,2000,3000,5000].forEach(q=>{
     const e2=getEA(q,btype,mat,print,ppList);
     if(!e2) return;
-    const lo2=Math.round(e2*.82/10)*10, hi2=Math.round(e2*1.18/10)*10;
+    const lo2=Math.round(e2*.85/10)*10, hi2=Math.round(e2*1.15/10)*10;
     const tr=document.createElement('tr');
     if(q===qty) tr.classList.add('cur');
-    tr.innerHTML=`<td class="ql">${q.toLocaleString()}개</td><td>${lo2.toLocaleString()}~${hi2.toLocaleString()}</td>`;
+    // 절감률 계산 (300개 대비)
+    let savingCell='';
+    if(base300 && q>300){
+      const pct=Math.round((1-e2/base300)*100);
+      savingCell=`<span style="color:#16a34a;font-weight:700;font-size:10px">▼${pct}%</span>`;
+    } else if(q===300){
+      savingCell=`<span style="color:#78716c;font-size:10px">기준</span>`;
+    }
+    tr.innerHTML=`<td class="ql">${q.toLocaleString()}개</td><td>${lo2.toLocaleString()}~${hi2.toLocaleString()}</td><td>${savingCell}</td>`;
     tbody.appendChild(tr);
   });
+  // 대량주문 절감 메시지
+  if(ea && base300 && qty>=1000){
+    const savePct=Math.round((1-ea/base300)*100);
+    const saveAmt=Math.round((base300-ea)*qty/1000)*1000;
+    document.getElementById('savingMsg').innerHTML=
+      `🎉 <b>${qty.toLocaleString()}개</b> 주문 시 300개 대비 <b style="color:#16a34a">약 ${savePct}% 절감</b> — 총 약 <b style="color:#16a34a">${saveAmt.toLocaleString()}원</b> 이득!`;
+    document.getElementById('savingMsg').style.display='block';
+  } else {
+    document.getElementById('savingMsg').style.display='none';
+  }
 }
 
 function doSubmit(){
@@ -523,7 +508,7 @@ function doSubmit(){
   const ppList=[...document.querySelectorAll('input[name=pp]:checked')].map(e=>e.value);
   const ppStr=ppList.join(', ')||'없음';
   const ea=getEA(+qty,btype,mat,print,ppList);
-  const priceStr=ea?`${Math.round(ea*.82/10)*10}~${Math.round(ea*1.18/10)*10}원/EA (예상)`:'-';
+  const priceStr=ea?`최저 ${Math.round(ea*.85/10)*10}~${Math.round(ea*1.15/10)*10}원/EA (예상)`:'-';
   const ref='#Q'+Date.now().toString().slice(-7);
   const now=new Date().toLocaleString('ko-KR');
 
@@ -540,7 +525,6 @@ function doSubmit(){
     납기:document.querySelector('input[name=deadline]').value||'-',
     회신방법:document.querySelector('select[name=reply]').value,
     요청사항:document.querySelector('textarea[name=memo]').value||'없음',
-    유입경로:SOURCE,
   };
 
   // localStorage 저장 (관리자 페이지용)
@@ -554,16 +538,10 @@ function doSubmit(){
   btn.disabled=true; btn.textContent='⏳ 전송 중...';
 
   fetch(FORMSPREE,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)})
-    .then(res=>res.ok)
-    .catch(()=>false)
-    .then(ok=>{
+    .catch(()=>{})
+    .finally(()=>{
       btn.disabled=false; btn.innerHTML='📨 견적 요청하기';
-      document.getElementById('ovIcon').textContent = ok ? '✅' : '⚠️';
-      document.getElementById('ovTitle').textContent = ok ? '견적 요청 완료!' : '견적 요청이 전송되지 않았습니다';
-      document.getElementById('ovMsg').innerHTML = ok
-        ? '담당자가 확인 후 <strong>영업일 1일 내</strong> 정확한 견적을 회신드리겠습니다.'
-        : '인터넷 연결 문제로 접수되지 않았습니다. 입력하신 내용은 그대로 남아 있으니 <strong>다시 시도</strong>하시거나 <a href="tel:0222660380"><strong>02-2266-0380</strong></a>으로 전화 주세요.';
-      document.getElementById('ovRef').textContent = ok ? '접수번호: '+ref : '전화 문의 시 아래 내용을 알려주세요';
+      document.getElementById('ovRef').textContent='접수번호: '+ref;
       document.getElementById('ovSum').innerHTML=
         `<b>박스:</b> ${btype}<br><b>사이즈:</b> ${w}×${h}×${d}mm / ${(+qty).toLocaleString()}개<br>`+
         `<b>재질:</b> ${mat} / 인쇄 ${print}도 / ${coat}<br>`+
