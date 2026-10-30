@@ -172,6 +172,27 @@ textarea{resize:vertical;min-height:70px}
 .card{animation:fadeup .3s ease both}
 @keyframes fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .card:nth-child(1){animation-delay:.04s}.card:nth-child(2){animation-delay:.08s}.card:nth-child(3){animation-delay:.12s}.card:nth-child(4){animation-delay:.16s}.card:nth-child(5){animation-delay:.20s}
+
+/* ══════════ [A] 카카오톡 상담 버튼 CSS ══════════ */
+.syp-kakao-wrap{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);text-align:center}
+.syp-kakao-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:14px 10px;
+  background:#FEE500;                 /* 카카오 공식 노란색 */
+  color:#191919;                      /* 카카오 공식 글자색 */
+  font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:800;line-height:1.3;
+  border:none;border-radius:var(--r);cursor:pointer;
+  box-shadow:0 4px 12px rgba(254,229,0,.45);
+  transition:transform .15s ease,filter .15s ease;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  animation:sypKakaoPulse 2.4s ease-in-out infinite}
+.syp-kakao-btn:hover{filter:brightness(.96);transform:translateY(-1px)}
+.syp-kakao-btn:active{transform:translateY(1px) scale(.99)}
+.syp-kakao-btn:disabled{opacity:.6;cursor:wait;animation:none}
+.syp-kakao-sub{margin-top:7px;font-size:10px;color:var(--dim);line-height:1.5}
+@keyframes sypKakaoPulse{0%,100%{box-shadow:0 4px 12px rgba(254,229,0,.45)}50%{box-shadow:0 4px 20px rgba(254,229,0,.95)}}
+@media(prefers-reduced-motion:reduce){.syp-kakao-btn{animation:none}}
+@media(max-width:480px){.syp-kakao-btn{font-size:15px;padding:15px 10px}}
 </style>
 </head>
 <body>
@@ -479,6 +500,15 @@ textarea{resize:vertical;min-height:70px}
 
       <button type="button" class="btn-sub" id="sbtn" onclick="doSubmit()">📨 견적 요청하기</button>
       <div class="req-note"><span style="color:var(--rust)">*</span> 필수 항목 입력 후 요청 · 영업일 1일 내 회신</div>
+
+      <!-- ══════════ [B] 카카오톡 간편 상담 버튼 ══════════ -->
+      <div class="syp-kakao-wrap">
+        <button type="button" id="sypKakaoBtn" class="syp-kakao-btn">
+          💬 이 견적 그대로 카카오톡 상담하기
+        </button>
+        <p class="syp-kakao-sub">누르면 견적 내용이 자동 복사됩니다.<br>카카오톡 상담창에 붙여넣기만 하세요.</p>
+      </div>
+
     </div>
   </div>
 </div>
@@ -783,6 +813,179 @@ function closeOv(){
   ['prUnit','prNote','srWrap'].forEach(id=>document.getElementById(id).style.display='none');
   document.getElementById('savingMsg').style.display='none';
 }
+</script>
+
+<!-- ══════════ [C] 카카오톡 간편 상담 퍼널 JS ══════════ -->
+<script>
+(function () {
+  'use strict';
+
+  /* ================================================================
+   * CONFIG - 필요하면 여기만 수정하세요
+   * ================================================================ */
+  var CONFIG = {
+    // 카카오톡 상담 링크 (1:1 채널). 오픈채팅으로 바꾸려면 이 줄만 수정
+    KAKAO_URL: 'https://pf.kakao.com/_LWuKxl/chat',
+
+    // 버튼 ID ([B] HTML의 button id와 동일해야 함)
+    BUTTON_ID: 'sypKakaoBtn',
+
+    // 카톡에 붙여넣을 문구의 머리말/맺음말
+    HEADER: '[신용판도라 자동 견적 상담 요청]',
+    FOOTER: '※ 웹 자동견적 기준 예상 단가(VAT 별도)이며, 상담 후 확정됩니다.',
+
+    // 안내 팝업 문구
+    ALERT_MSG: '견적 내용이 복사되었습니다!\n카카오톡 상담창에 붙여넣기(Ctrl+V) 해주세요.',
+
+    // 견적이 아직 계산되지 않았을 때 안내 문구
+    EMPTY_MSG: '먼저 박스 유형, 사이즈, 수량을 입력해서 견적을 확인해 주세요.'
+  };
+
+  /* ================================================================
+   * 입력값 읽기 (이 페이지의 실제 ID/name에 맞춰 연결되어 있음)
+   *   박스 유형: input[name=btype]   가로: #fw   세로: #fd   높이: #fh
+   *   수량: #fqty   재질: #fmat   인쇄: #fprint   코팅: #fcoat
+   *   후가공: input[name=pp]   주요옵션: input[name=opt]
+   * ================================================================ */
+  function val(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function checkedList(name) {
+    var nodes = document.querySelectorAll('input[name="' + name + '"]:checked');
+    return Array.prototype.map.call(nodes, function (e) { return e.value; });
+  }
+
+  function collectQuote() {
+    var typeEl = document.querySelector('input[name="btype"]:checked');
+    var q = {
+      boxType: typeEl ? typeEl.value : '',
+      w: val('fw'),
+      d: val('fd'),
+      h: val('fh'),
+      qty: val('fqty'),
+      matRaw: val('fmat'),
+      print: val('fprint') || '0',
+      coat: val('fcoat') || '없음',
+      pp: checkedList('pp'),
+      opt: checkedList('opt')
+    };
+
+    // 화면에 표시되는 단가와 같은 계산식(getEA)을 그대로 사용
+    var ea = null;
+    if (typeof window.getEA === 'function') {
+      ea = window.getEA(+q.qty, q.boxType, q.matRaw, q.print, q.coat, q.pp, q.opt);
+    }
+    q.hasPrice = !!ea;
+    q.priceStr = ea
+      ? '최저 ' + (Math.round(ea * 0.85 / 10) * 10).toLocaleString('ko-KR') + '~' +
+        (Math.round(ea * 1.15 / 10) * 10).toLocaleString('ko-KR') + '원/EA (예상)'
+      : '';
+    return q;
+  }
+
+  // 카톡에 붙여넣기 좋은 텍스트로 변환
+  function buildMessage(q) {
+    var lines = [];
+    lines.push(CONFIG.HEADER);
+    lines.push('');
+    lines.push('■ 박스 유형: ' + (q.boxType || '-'));
+    lines.push('■ 규격(mm): ' + q.w + ' x ' + q.d + ' x ' + q.h + '  (가로x세로x높이)');
+    lines.push('■ 수량: ' + (+q.qty).toLocaleString('ko-KR') + '개');
+    lines.push('■ 재질: ' + (q.matRaw || '상담 필요'));
+    lines.push('■ 인쇄/코팅: ' + (q.print === '0' ? '무지' : q.print + '도') + ' / ' + q.coat);
+    lines.push('■ 후가공: ' + (q.pp.length ? q.pp.join(', ') : '없음'));
+    lines.push('■ 주요옵션: ' + (q.opt.length ? q.opt.join(', ') : '없음'));
+    lines.push('■ 예상 단가: ' + q.priceStr);
+    lines.push('');
+    lines.push(CONFIG.FOOTER);
+    return lines.join('\n');
+  }
+
+  /* ================================================================
+   * 클립보드 복사 (최신 API + 구형/인앱 브라우저용 폴백)
+   * ================================================================ */
+  function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '-9999px';
+        ta.style.fontSize = '16px'; // iOS 자동 확대 방지
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length); // iOS 대응
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        ok ? resolve() : reject(new Error('copy failed'));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  function goKakao() {
+    window.location.href = CONFIG.KAKAO_URL;
+  }
+
+  /* ================================================================
+   * 버튼 클릭: 수집 → 복사 → 알림 → 확인 후 카카오톡 이동
+   * ================================================================ */
+  function handleClick(btn) {
+    var quote = collectQuote();
+
+    // 견적이 아직 계산되지 않았으면 안내만 하고 중단
+    if (!quote.hasPrice) {
+      alert(CONFIG.EMPTY_MSG);
+      return;
+    }
+
+    var message = buildMessage(quote);
+    btn.disabled = true; // 중복 클릭 방지
+
+    copyToClipboard(message)
+      .then(function () {
+        alert(CONFIG.ALERT_MSG); // 확인을 누를 때까지 아래 이동 코드는 대기
+        goKakao();
+      })
+      .catch(function () {
+        // 자동 복사 실패 시: 직접 복사할 수 있게 내용을 보여준 뒤 이동
+        window.prompt('자동 복사에 실패했습니다. 아래 내용을 복사(Ctrl+C) 후 카카오톡에 붙여넣어 주세요.', message);
+        goKakao();
+      })
+      .then(function () {
+        btn.disabled = false;
+      });
+  }
+
+  function init() {
+    var btn = document.getElementById(CONFIG.BUTTON_ID);
+    if (!btn) return;
+    btn.addEventListener('click', function () { handleClick(btn); });
+  }
+
+  // 뒤로가기(bfcache)로 돌아왔을 때 버튼 상태 복구
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) {
+      var btn = document.getElementById(CONFIG.BUTTON_ID);
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
 </body>
 </html>
