@@ -832,7 +832,7 @@ function closeOv(){
 
     // 카톡에 붙여넣을 문구의 머리말/맺음말
     HEADER: '[신용판도라 자동 견적 상담 요청]',
-    FOOTER: '※ 웹 자동견적 기준 예상 단가(VAT 별도)이며, 상담 후 확정됩니다.',
+    FOOTER: '※ 웹 자동견적 기준 예상 단가 (VAT 별도)\n※ 정확한 금액은 상담 후 확정됩니다.',
 
     // 안내 팝업 문구
     ALERT_MSG: '견적 내용이 복사되었습니다!\n카카오톡 상담창에 붙여넣기(Ctrl+V) 해주세요.',
@@ -879,8 +879,8 @@ function closeOv(){
     }
     q.hasPrice = !!ea;
     q.priceStr = ea
-      ? '최저 ' + (Math.round(ea * 0.85 / 10) * 10).toLocaleString('ko-KR') + '~' +
-        (Math.round(ea * 1.15 / 10) * 10).toLocaleString('ko-KR') + '원/EA (예상)'
+      ? (Math.round(ea * 0.85 / 10) * 10).toLocaleString('ko-KR') + '~' +
+        (Math.round(ea * 1.15 / 10) * 10).toLocaleString('ko-KR') + '원/EA'
       : '';
     return q;
   }
@@ -890,13 +890,14 @@ function closeOv(){
     var lines = [];
     lines.push(CONFIG.HEADER);
     lines.push('');
-    lines.push('■ 박스 유형: ' + (q.boxType || '-'));
-    lines.push('■ 규격(mm): ' + q.w + ' x ' + q.d + ' x ' + q.h + '  (가로x세로x높이)');
+    lines.push('■ 박스: ' + (q.boxType || '-'));
+    lines.push('■ 규격 (가로×세로×높이, mm)');
+    lines.push('   ' + q.w + ' × ' + q.d + ' × ' + q.h);
     lines.push('■ 수량: ' + (+q.qty).toLocaleString('ko-KR') + '개');
     lines.push('■ 재질: ' + (q.matRaw || '상담 필요'));
     lines.push('■ 인쇄/코팅: ' + (q.print === '0' ? '무지' : q.print + '도') + ' / ' + q.coat);
     lines.push('■ 후가공: ' + (q.pp.length ? q.pp.join(', ') : '없음'));
-    lines.push('■ 주요옵션: ' + (q.opt.length ? q.opt.join(', ') : '없음'));
+    lines.push('■ 옵션: ' + (q.opt.length ? q.opt.join(', ') : '없음'));
     lines.push('■ 예상 단가: ' + q.priceStr);
     lines.push('');
     lines.push(CONFIG.FOOTER);
