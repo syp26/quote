@@ -572,7 +572,7 @@ const PP = {
   '도무송 (칼선)':0,   // 도무송은 기본 원가에 이미 포함
   '자석':200, '엠보싱':160, '실크스크린':120,
 };
-const OPT_ADD = {'내부 스펀지 트레이':600, 'PET 투명창':220, '벨벳/천 내피':300};
+const OPT_ADD = {'내부 스펀지 트레이':300, 'PET 투명창':220, '벨벳/천 내피':300};
 const FILM_PLATE = 220000;   // 필름 120,000 + 인쇄판 100,000 (인쇄 시)
 const DIE = 100000;          // 목형비
 
@@ -608,19 +608,21 @@ function costPerEA(p){
 
   let paper=0, fixed=0, perEa=0;
   if(family==='corr'){
-    const c = CORR[mat] || CORR['골판지 (E/B골)'];
-    const ups = c.sum / (devW + devH);
-    paper = c.price * (qty/ups + 20) / qty;
-    fixed = DIE + 100000 + 50000 + (printed ? FILM_PLATE : 0);   // 목형 + 접착 + 도무송
+    // 실제 견적 41건 기준 보정: 전개 면적(㎡) 기반 (골판지 통상 전개 = (2(가+세)+30) × (높이+세로))
+    const areaM2 = (2*(w+d)+30) * (h+d) / 1e6;
+    paper = 1088 * areaM2;
+    fixed = 300000 + (printed ? 300000 : 0);   // 목형 + 접착 + 도무송 (+ 필름·인쇄판)
   } else if(family==='sabari'){
-    paper = paperPerEA(PAPER['갱판지'], devW, devH, qty, 200)*2 + paperPerEA(PAPER['아트지'], devW, devH, qty, 200);
-    fixed = 400000 + (printed ? 100000 : 0);
-    perEa = 350 + 600 + 140 + (btype==='자석 싸바리 박스' ? PP['자석'] : 0);
+    // 실제 견적 6건 기준 보정 (2단·서랍형은 이보다 높게 나오는 경향)
+    paper = (paperPerEA(PAPER['갱판지'], devW, devH, qty, 200)*2 + paperPerEA(PAPER['아트지'], devW, devH, qty, 200)) * 1.61;
+    fixed = 100000 + (printed ? 100000 : 0);
+    perEa = 300 + (btype==='자석 싸바리 박스' ? PP['자석'] : 0);
   } else {
+    // 실제 견적 9건 기준 보정
     const kind = MAT_PAPER[mat] || '아이보리';
-    paper = paperPerEA(PAPER[kind], devW, devH, qty, 200);
-    fixed = DIE + (printed ? FILM_PLATE : 0);
-    perEa = 140;
+    paper = paperPerEA(PAPER[kind], devW, devH, qty, 200) * 0.64;
+    fixed = DIE + (printed ? 270000 : 0);
+    perEa = 0;
   }
 
   let add = (COAT_ADD[coat]||0);
