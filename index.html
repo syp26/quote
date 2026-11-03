@@ -193,6 +193,15 @@ textarea{resize:vertical;min-height:70px}
 @keyframes sypKakaoPulse{0%,100%{box-shadow:0 4px 12px rgba(254,229,0,.45)}50%{box-shadow:0 4px 20px rgba(254,229,0,.95)}}
 @media(prefers-reduced-motion:reduce){.syp-kakao-btn{animation:none}}
 @media(max-width:480px){.syp-kakao-btn{font-size:15px;padding:15px 10px}}
+
+.gate{background:var(--paper2);border:1px solid var(--line2);border-radius:var(--r2);padding:14px;margin:0 0 12px;position:relative}
+.gate-t{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.gate-s{font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:10px}
+.gate input[type=text],.gate input[type=tel],.gate input[type=email]{width:100%;box-sizing:border-box;margin-bottom:7px;padding:10px;border:1px solid var(--line2);border-radius:var(--r);font-family:'Noto Sans KR',sans-serif;font-size:13px;background:#fff}
+.gate-err{font-size:11px;color:#b91c1c;min-height:14px;margin-bottom:4px}
+.gate-btn{width:100%;padding:11px;background:var(--ink);color:#fff;border:none;border-radius:var(--r);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.gate-btn:hover{background:var(--rust)}
+.gate-p{font-size:10px;color:var(--dim);margin-top:7px;text-align:center}
 </style>
 </head>
 <body>
@@ -475,7 +484,24 @@ textarea{resize:vertical;min-height:70px}
         <div class="ptag-label">💰 예상 단가 (VAT 별도)</div>
         <div class="price-num" id="prNum"><div class="price-empty"><span>📦</span>옵션을 선택하세요</div></div>
         <div class="price-unit" id="prUnit" style="display:none">원 / EA</div>
-        <div class="price-note" id="prNote" style="display:none">※ 대량 주문 시 추가 협의 가능 · 정확한 견적은 문의 후 안내</div>
+        <div class="price-note" id="prNote" style="display:none">※ 참고용 예상 범위이며 확정 견적이 아닙니다 · 사양·수량·납기에 따라 변동 · VAT 별도 · 확정 견적은 문의 후 안내(유효기간 7일)</div>
+      </div>
+
+      <div id="gateBox" class="gate" style="display:none">
+        <div class="gate-t">🔓 예상 단가 확인하기</div>
+        <div class="gate-s">연락처를 남기시면 예상 단가와 수량별 비교표를 바로 보여드리고, 담당자가 영업일 1일 내 확정 견적을 안내드립니다.</div>
+        <input type="text" id="gname" placeholder="회사명 / 성함" autocomplete="organization">
+        <input type="tel" id="gphone" placeholder="연락처 (010-0000-0000)" autocomplete="tel">
+        <input type="email" id="gemail" placeholder="이메일" autocomplete="email">
+        <input type="text" id="gweb" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+        <div class="gate-err" id="gateErr"></div>
+        <button type="button" class="gate-btn" onclick="unlockPrice()">예상 단가 보기</button>
+        <div class="gate-p">입력하신 정보는 견적 상담 목적으로만 사용됩니다.</div>
+      </div>
+
+      <div id="consultBox" class="gate" style="display:none">
+        <div class="gate-t">💬 담당자가 직접 안내드립니다</div>
+        <div class="gate-s" style="margin-bottom:0">이 유형은 구조·사양에 따라 가격 차이가 커서 자동 계산이 어렵습니다. 아래 <b>견적 요청하기</b> 또는 <b>카카오톡 상담</b>으로 사양을 남겨 주시면 영업일 1일 내 정확한 견적을 안내드립니다.</div>
       </div>
 
       <div id="srWrap" style="display:none">
@@ -489,6 +515,7 @@ textarea{resize:vertical;min-height:70px}
           <div class="sr"><span class="srk">옵션</span><span class="srv" id="sr7">없음</span></div>
         </div>
 
+        <div id="tblWrap">
         <span class="tbl-label">📊 수량별 단가 비교 (MOQ)</span>
         <div class="saving-msg" id="savingMsg"></div>
         <table class="qty-tbl">
@@ -496,6 +523,7 @@ textarea{resize:vertical;min-height:70px}
           <tbody id="qtbody"></tbody>
         </table>
         <div style="font-size:10px;color:var(--dim);margin-top:-8px;margin-bottom:12px">※ 수량이 많을수록 단가가 크게 낮아집니다</div>
+        </div>
       </div>
 
       <button type="button" class="btn-sub" id="sbtn" onclick="doSubmit()">📨 견적 요청하기</button>
@@ -531,6 +559,17 @@ textarea{resize:vertical;min-height:70px}
 //  설정
 // ══════════════════════════════════════════════
 const FORMSPREE = 'https://formspree.io/f/mbdpojdl';
+
+// 가격 공개 여부: 연락처를 입력한 방문자에게만 단가를 보여줌 (브라우저에 기억)
+let UNLOCKED = false;
+try { UNLOCKED = localStorage.getItem('syp_unlock_v1') === '1'; } catch(e) {}
+function isUnlocked(){ return UNLOCKED; }
+
+// 자동 견적이 부정확한 유형: 숫자 대신 '상담 후 안내' (검증 데이터에서 오차가 큰 유형)
+const CONSULT_TYPES = ['자석 싸바리 박스','GC형 박스','기타 (상담 필요)'];
+function isConsult(btype, ppList){
+  return CONSULT_TYPES.includes(btype) || (ppList||[]).includes('자석');
+}
 
 // ══════════════════════════════════════════════
 //  원가 계산 (엑셀 '자동견적_20220511_ver1_0' 구조 그대로)
@@ -641,6 +680,7 @@ function costPerEA(p){
 
 // 화면용: 입력창 값을 읽어 최저 견적단가(원가 × 1.3)를 반환
 function getEA(qty, btype, mat, print, coat, ppList, optList){
+  if(isConsult(btype, ppList)) return null;
   const w=+document.getElementById('fw').value||0;
   const h=+document.getElementById('fh').value||0;
   const d=+document.getElementById('fd').value||0;
@@ -716,6 +756,20 @@ function calc(){
   document.getElementById('sr6').textContent = ppList.length ? ppList.join(', ') : '없음';
   document.getElementById('sr7').textContent = optList.length ? optList.join(', ') : '없음';
 
+  const gate=document.getElementById('gateBox'), cons=document.getElementById('consultBox'), tw=document.getElementById('tblWrap');
+  gate.style.display='none'; cons.style.display='none';
+
+  // 부정확한 유형 → 숫자 없이 상담 안내
+  if(isConsult(btype, ppList)){
+    document.getElementById('prNum').innerHTML='<div class="price-empty"><span>💬</span>상담 후 안내</div>';
+    ['prUnit','prNote'].forEach(id=>document.getElementById(id).style.display='none');
+    tw.style.display='none';
+    document.getElementById('savingMsg').style.display='none';
+    document.getElementById('srWrap').style.display='block';
+    cons.style.display='block';
+    return;
+  }
+
   const ea = getEA(qty, btype, mat, print, coat, ppList, optList);
   if(!ea){
     document.getElementById('prNum').innerHTML='<div class="price-empty"><span>📦</span>옵션을 모두 선택하세요</div>';
@@ -723,14 +777,28 @@ function calc(){
     return;
   }
 
-  // 가격 표시: "최저 XXX~" 앵커링
   const lo = Math.round(ea / 10) * 10;
+  const hi = Math.round(ea * RANGE_HI / 10) * 10;
+  document.getElementById('srWrap').style.display = 'block';
+
+  // 연락처 입력 전: 가격 숨김
+  if(!isUnlocked()){
+    document.getElementById('prNum').innerHTML='<div class="price-empty"><span>🔒</span>연락처를 남기시면<br>예상 단가를 바로 보여드립니다</div>';
+    document.getElementById('prUnit').style.display='none';
+    document.getElementById('prNote').style.display='block';
+    tw.style.display='none';
+    document.getElementById('savingMsg').style.display='none';
+    gate.style.display='block';
+    return;
+  }
+
+  // 가격 표시: 범위(최저~상한)
   document.getElementById('prNum').innerHTML =
     '<span style="font-size:13px;color:var(--muted);font-family:\'Noto Sans KR\';font-weight:400">최저 </span>' +
-    lo.toLocaleString() + '<span style="font-size:20px">~</span>';
+    lo.toLocaleString() + '<span style="font-size:20px"> ~ </span><span style="font-size:28px">' + hi.toLocaleString() + '</span>';
   document.getElementById('prUnit').style.display = 'block';
   document.getElementById('prNote').style.display = 'block';
-  document.getElementById('srWrap').style.display = 'block';
+  tw.style.display = 'block';
 
   // MOQ별 수량 비교표
   const tbody = document.getElementById('qtbody'); tbody.innerHTML = '';
@@ -800,6 +868,7 @@ function doSubmit(){
     후가공:ppList.join(', ')||'없음',
     주요옵션:optList.join(', ')||'없음',
     예상단가:priceStr,
+    화면견적_최저:lo, 화면견적_상한:hi, 견적모델:'v4-2026-11',
     회사명:company,
     담당자:document.querySelector('input[name=contact]').value||'-',
     연락처:phone, 이메일:email,
@@ -845,6 +914,51 @@ function closeOv(){
   document.getElementById('prNum').innerHTML='<div class="price-empty"><span>📦</span>옵션을 선택하세요</div>';
   ['prUnit','prNote','srWrap'].forEach(id=>document.getElementById(id).style.display='none');
   document.getElementById('savingMsg').style.display='none';
+  ['gateBox','consultBox'].forEach(id=>{const e=document.getElementById(id); if(e) e.style.display='none';});
+}
+
+// ══════════════════════════════════════════════
+//  가격 공개: 연락처 입력 → 단가 표시 + 리드 메일 전송
+// ══════════════════════════════════════════════
+function unlockPrice(){
+  if(document.getElementById('gweb').value) return;          // 봇 방지(허니팟)
+  const name  = document.getElementById('gname').value.trim();
+  const phone = document.getElementById('gphone').value.trim();
+  const email = document.getElementById('gemail').value.trim();
+  const err   = document.getElementById('gateErr');
+  const digits = phone.replace(/\D/g,'');
+  if(!name){ err.textContent='회사명 또는 성함을 입력해 주세요.'; return; }
+  if(digits.length<9 || digits.length>11){ err.textContent='연락처를 정확히 입력해 주세요.'; return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent='이메일을 정확히 입력해 주세요.'; return; }
+  err.textContent='';
+
+  // 아래 견적 요청 폼에 미리 채워 두기
+  const fill=(sel,v)=>{ const el=document.querySelector(sel); if(el && !el.value) el.value=v; };
+  fill('input[name=company]',name); fill('input[name=phone]',phone); fill('input[name=email]',email);
+
+  UNLOCKED = true;
+  try { localStorage.setItem('syp_unlock_v1','1'); } catch(e) {}
+
+  // 견적 요청 전이라도 연락처를 잡을 수 있도록 리드 메일 전송
+  const btype=document.querySelector('input[name=btype]:checked')?.value;
+  const w=document.getElementById('fw').value, d=document.getElementById('fd').value, hh=document.getElementById('fh').value;
+  const qty=document.getElementById('fqty').value;
+  const mat=document.getElementById('fmat').value||'상담필요';
+  const print=document.getElementById('fprint').value, coat=document.getElementById('fcoat').value;
+  const ppList=[...document.querySelectorAll('input[name=pp]:checked')].map(e=>e.value);
+  const optList=[...document.querySelectorAll('input[name=opt]:checked')].map(e=>e.value);
+  const ea=getEA(+qty, btype, mat, print, coat, ppList, optList);
+  const lo=ea?Math.round(ea/10)*10:null, hi=ea?Math.round(ea*RANGE_HI/10)*10:null;
+  const payload={
+    _subject:`[가격조회] ${name} | ${btype||'-'} ${qty?(+qty).toLocaleString()+'개':''}`,
+    구분:'가격조회 (견적 요청 전)', 접수일시:new Date().toLocaleString('ko-KR'),
+    박스유형:btype||'-', 사이즈:`${w}×${d}×${hh}mm`, 수량:qty||'-', 재질:mat,
+    인쇄:`${print}도`, 코팅:coat, 후가공:ppList.join(', ')||'없음', 주요옵션:optList.join(', ')||'없음',
+    화면견적_최저:lo, 화면견적_상한:hi, 견적모델:'v4-2026-11',
+    회사명:name, 연락처:phone, 이메일:email
+  };
+  fetch(FORMSPREE,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)}).catch(()=>{});
+  calc();
 }
 </script>
 
@@ -910,11 +1024,12 @@ function closeOv(){
     if (typeof window.getEA === 'function') {
       ea = window.getEA(+q.qty, q.boxType, q.matRaw, q.print, q.coat, q.pp, q.opt);
     }
+    q.consult = (typeof window.isConsult === 'function') && window.isConsult(q.boxType, q.pp);
     q.hasPrice = !!ea;
     q.priceStr = ea
       ? (Math.round(ea / 10) * 10).toLocaleString('ko-KR') + '~' +
         (Math.round(ea * RANGE_HI / 10) * 10).toLocaleString('ko-KR') + '원/EA'
-      : '';
+      : (q.consult ? '상담 후 안내' : '');
     return q;
   }
 
@@ -977,8 +1092,16 @@ function closeOv(){
     var quote = collectQuote();
 
     // 견적이 아직 계산되지 않았으면 안내만 하고 중단
-    if (!quote.hasPrice) {
+    if (!quote.hasPrice && !(quote.consult && quote.w && quote.d && quote.h && quote.qty)) {
       alert(CONFIG.EMPTY_MSG);
+      return;
+    }
+
+    // 연락처를 입력하기 전에는 가격이 담긴 문구를 만들지 않음
+    if (quote.hasPrice && typeof window.isUnlocked === 'function' && !window.isUnlocked()) {
+      alert('먼저 연락처를 입력하고 예상 단가를 확인해 주세요.');
+      var g = document.getElementById('gateBox');
+      if (g && g.scrollIntoView) g.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
