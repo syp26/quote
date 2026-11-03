@@ -532,62 +532,119 @@ textarea{resize:vertical;min-height:70px}
 // ══════════════════════════════════════════════
 const FORMSPREE = 'https://formspree.io/f/mbdpojdl';
 
-// 박스 유형별 복잡도 계수 (실데이터 291건 기반)
-const BOX_FACTOR = {
-  'G형 골판지 박스':   1.0,
-  '상하 싸바리 박스':  3.2,
-  '표지 싸바리 박스':  2.8,
-  'B형 단상자':        1.0,
-  '슬리브 박스':       1.1,
-  '자석 싸바리 박스':  4.0,
-  'GC형 박스':         2.2,
-  'R형 박스':          1.3,
-  'PET 슬리브':        1.3,
-  '카톤 박스':         0.8,
-  '식품용 박스':       0.9,
-  '기타 (상담 필요)':  1.5,
+// ══════════════════════════════════════════════
+//  원가 계산 (엑셀 '자동견적_20220511_ver1_0' 구조 그대로)
+//  원가/EA = 종이값(장당 단가 × 필요 장수 ÷ 수량) + 고정비/수량 + 개당 가공비
+//  견적단가 = 원가 × 마진배수  (화면 최저 1.3배 ~ 상한 1.5배)
+// ══════════════════════════════════════════════
+const MARKUP_LO = 1.3;   // 화면에 크게 보이는 "최저" 견적 배수
+const MARKUP_HI = 1.5;   // 엑셀 기준 견적 배수 (상한)
+const RANGE_HI  = MARKUP_HI / MARKUP_LO;
+
+// 종이 규격: 엑셀과 동일하게 '가로+세로 합'으로 한 장에서 몇 개 나오는지 계산
+const SHEETS = {
+  '4x6':      {w:788, h:1094, sum:1882},
+  '640x940':  {w:640, h:940,  sum:1580},
+  '889x1194': {w:889, h:1194, sum:2083},
 };
-
-// 재질 계수
-const MAT_FACTOR = {
-  '':                      1.0,
-  '골판지 (E/B골)':        0.65,
-  '골판지 합지':           0.85,
-  '아이보리 300~350g':     1.0,
-  '로얄아이보리 350g':     1.4,
-  '싸바리 (갱판지+외지)':  1.6,
-  '크라프트지':            0.7,
-  '식품용 판지':           0.75,
-  '스타드림·특수지':       1.5,
-  '상담 필요':             1.0,
+// 종이 500장(1연) 가격 (부가세 제외, 엑셀 단가표 기준)
+const PAPER = {
+  '아이보리':     {'4x6':293275, '640x940':203933, '889x1194':361253},  // 350g
+  '로얄아이보리': {'4x6':518000, '640x940':360000, '889x1194':638000},  // 350g
+  '마니라':       {'4x6':195515, '640x940':136406, '889x1194':240984},  // SC마니라 300g
+  '갱판지':       {'4x6':197000, '640x940':138000, '889x1194':244000},  // 싸바리 속판 350g
+  '아트지':       {'4x6':85000},                                        // 싸바리 겉지 150g
 };
+// 골판지: 1000x1580 한 장 가격 (엑셀 B형 시트 기준)
+const CORR = {'골판지 (E/B골)':{price:2000,sum:2580}, '골판지 합지':{price:3000,sum:2580}};
 
-// 수량 구간 계수 (MOQ 연동)
-const QD = {300:1.45, 500:1.25, 700:1.15, 1000:1.0, 1500:0.92, 2000:0.86, 3000:0.80, 5000:0.74, 10000:0.68};
+const MAT_PAPER = {
+  '아이보리 300~350g':'아이보리', '로얄아이보리 350g':'로얄아이보리',
+  '크라프트지':'마니라', '식품용 판지':'마니라', '스타드림·특수지':'로얄아이보리',
+};
+const CORR_TYPES = ['G형 골판지 박스','GC형 박스','카톤 박스'];
+const SABARI_TYPES = ['상하 싸바리 박스','표지 싸바리 박스','자석 싸바리 박스'];
 
-// 인쇄 가산 (원/EA)
-const PR = {'0':0, '1':70, '2':110, '4':200};
-
-// 후가공 가산
+// 가공 단가 (원/EA) - 엑셀 Option 표 기준
+const COAT_ADD = {'없음':0,'무광 라미네이팅':100,'유광 라미네이팅':100,'오버코팅 (수성)':40,'벨벳 코팅':150};
 const PP = {
-  '박/형압':130, '합지':100, '금박/은박':180,
-  '끈/손잡이':40, '도무송 (칼선)':130, '자석':200,
-  '엠보싱':160, '실크스크린':110,
+  '박/형압':150, '합지':110, '금박/은박':150, '끈/손잡이':40,
+  '도무송 (칼선)':0,   // 도무송은 기본 원가에 이미 포함
+  '자석':200, '엠보싱':160, '실크스크린':120,
 };
+const OPT_ADD = {'내부 스펀지 트레이':600, 'PET 투명창':220, '벨벳/천 내피':300};
+const FILM_PLATE = 220000;   // 필름 120,000 + 인쇄판 100,000 (인쇄 시)
+const DIE = 100000;          // 목형비
 
-// 주요 옵션 가산
-const OPT_ADD = {
-  '내부 스펀지 트레이':200,
-  'PET 투명창':220,
-  '종이 칸막이 (내부 격판)':80,
-  '벨벳/천 내피':300,
-};
+// 한 장에서 나오는 개수와 개당 종이값 (들어가는 규격 중 가장 싼 것 자동 선택)
+function paperPerEA(prices, devW, devH, qty, extra){
+  const devSum = devW + devH;
+  const keys = Object.keys(prices);
+  const fits = k => { const s = SHEETS[k]; return (devW<=s.w && devH<=s.h) || (devW<=s.h && devH<=s.w); };
+  let cand = keys.filter(fits);
+  if(!cand.length) cand = keys;
+  let best = null;
+  cand.forEach(k=>{
+    const ups = SHEETS[k].sum / devSum;
+    const cost = (prices[k]/500) * (qty/ups + extra) / qty;
+    if(best===null || cost<best) best = cost;
+  });
+  return best;
+}
 
-// 코팅 가산
-const COAT_ADD = {
-  '없음':0, '무광 라미네이팅':60, '유광 라미네이팅':50,
-  '오버코팅 (수성)':40, '벨벳 코팅':150,
-};
+// 원가/EA 계산
+function costPerEA(p){
+  const {w,d,h,qty,btype,mat,print,coat,ppList,optList} = p;
+  if(!w||!d||!h||!qty||!btype) return null;
+  const devW = w*2 + d*2 + 50;
+  const devH = h + d*2 + 50;
+  const printed = Number(print) > 0;
+
+  let family;
+  if(SABARI_TYPES.includes(btype)) family='sabari';
+  else if(CORR[mat]) family='corr';
+  else if(MAT_PAPER[mat]) family='board';
+  else family = CORR_TYPES.includes(btype) ? 'corr' : 'board';
+
+  let paper=0, fixed=0, perEa=0;
+  if(family==='corr'){
+    const c = CORR[mat] || CORR['골판지 (E/B골)'];
+    const ups = c.sum / (devW + devH);
+    paper = c.price * (qty/ups + 20) / qty;
+    fixed = DIE + 100000 + 50000 + (printed ? FILM_PLATE : 0);   // 목형 + 접착 + 도무송
+  } else if(family==='sabari'){
+    paper = paperPerEA(PAPER['갱판지'], devW, devH, qty, 200)*2 + paperPerEA(PAPER['아트지'], devW, devH, qty, 200);
+    fixed = 400000 + (printed ? 100000 : 0);
+    perEa = 350 + 600 + 140 + (btype==='자석 싸바리 박스' ? PP['자석'] : 0);
+  } else {
+    const kind = MAT_PAPER[mat] || '아이보리';
+    paper = paperPerEA(PAPER[kind], devW, devH, qty, 200);
+    fixed = DIE + (printed ? FILM_PLATE : 0);
+    perEa = 140;
+  }
+
+  let add = (COAT_ADD[coat]||0);
+  ppList.forEach(x=>{
+    if(x==='합지' && family==='sabari') return;
+    if(x==='자석' && btype==='자석 싸바리 박스') return;
+    add += (PP[x]||0);
+  });
+  optList.forEach(o=>{
+    if(o==='종이 칸막이 (내부 격판)'){
+      add += paperPerEA(PAPER['마니라'], w*2+80+105, d*2+80+50, qty, 200) + DIE/qty + 140;
+    } else add += (OPT_ADD[o]||0);
+  });
+  return paper + fixed/qty + perEa + add;
+}
+
+// 화면용: 입력창 값을 읽어 최저 견적단가(원가 × 1.3)를 반환
+function getEA(qty, btype, mat, print, coat, ppList, optList){
+  const w=+document.getElementById('fw').value||0;
+  const h=+document.getElementById('fh').value||0;
+  const d=+document.getElementById('fd').value||0;
+  const cost = costPerEA({w,d,h,qty,btype,mat,print,coat,ppList,optList});
+  return cost===null ? null : cost*MARKUP_LO;
+}
 
 // ══════════════════════════════════════════════
 //  퀵 선택
@@ -632,32 +689,6 @@ function selBox(el){
 function tChip(el){el.classList.toggle('on');calc();}
 function tOptCheck(el){el.classList.toggle('on');calc();}
 
-// ══════════════════════════════════════════════
-//  단가 계산 (고객 표시용 · 마진 최소화)
-// ══════════════════════════════════════════════
-function getEA(qty, btype, mat, print, coat, ppList, optList){
-  const w=+document.getElementById('fw').value||0;
-  const h=+document.getElementById('fh').value||0;
-  const d=+document.getElementById('fd').value||0;
-  if(!w||!h||!d||!qty||!btype) return null;
-
-  // 전개면적 (cm²)
-  const area = ((w*2+d*2)*(h+d) + w*d) / 100;
-
-  const bFactor = BOX_FACTOR[btype] || 1.0;
-  const mFactor = MAT_FACTOR[mat]   || 1.0;
-  const qFactor = QD[qty]           || 1.0;
-
-  const base   = area * bFactor * mFactor * qFactor;
-  const pAdd   = PR[String(print)]  || 0;
-  const cAdd   = COAT_ADD[coat]     || 0;
-  const ppAdd  = ppList.reduce((s,p)=>s+(PP[p]||0), 0);
-  const optAdd = optList.reduce((s,o)=>s+(OPT_ADD[o]||0), 0);
-  const mold   = 90000 / qty;  // 목형비 분산
-
-  // 고객 표시 단가 (원가 + 10% 수준)
-  return (base + pAdd + cAdd + ppAdd + optAdd + mold) * 1.1;
-}
 
 // ══════════════════════════════════════════════
 //  실시간 계산
@@ -691,7 +722,7 @@ function calc(){
   }
 
   // 가격 표시: "최저 XXX~" 앵커링
-  const lo = Math.round(ea * 0.85 / 10) * 10;
+  const lo = Math.round(ea / 10) * 10;
   document.getElementById('prNum').innerHTML =
     '<span style="font-size:13px;color:var(--muted);font-family:\'Noto Sans KR\';font-weight:400">최저 </span>' +
     lo.toLocaleString() + '<span style="font-size:20px">~</span>';
@@ -706,8 +737,8 @@ function calc(){
   qtys.forEach(q=>{
     const e2 = getEA(q, btype, mat, print, coat, ppList, optList);
     if(!e2) return;
-    const lo2 = Math.round(e2*0.85/10)*10;
-    const hi2 = Math.round(e2*1.15/10)*10;
+    const lo2 = Math.round(e2/10)*10;
+    const hi2 = Math.round(e2*RANGE_HI/10)*10;
     const tr = document.createElement('tr');
     if(q===qty) tr.classList.add('cur');
     tr.innerHTML = `<td class="ql">${q.toLocaleString()}개</td><td>${lo2.toLocaleString()}~${hi2.toLocaleString()}</td>`;
@@ -752,8 +783,8 @@ function doSubmit(){
   const ppList  = [...document.querySelectorAll('input[name=pp]:checked')].map(e=>e.value);
   const optList = [...document.querySelectorAll('input[name=opt]:checked')].map(e=>e.value);
   const ea = getEA(+qty, btype, mat, print, coat, ppList, optList);
-  const lo = ea ? Math.round(ea*0.85/10)*10 : null;
-  const hi = ea ? Math.round(ea*1.15/10)*10 : null;
+  const lo = ea ? Math.round(ea/10)*10 : null;
+  const hi = ea ? Math.round(ea*RANGE_HI/10)*10 : null;
   const priceStr = ea ? `최저 ${lo.toLocaleString()}~${hi.toLocaleString()}원/EA (예상)` : '상담 후 안내';
 
   const ref = '#Q' + Date.now().toString().slice(-7);
@@ -879,8 +910,8 @@ function closeOv(){
     }
     q.hasPrice = !!ea;
     q.priceStr = ea
-      ? (Math.round(ea * 0.85 / 10) * 10).toLocaleString('ko-KR') + '~' +
-        (Math.round(ea * 1.15 / 10) * 10).toLocaleString('ko-KR') + '원/EA'
+      ? (Math.round(ea / 10) * 10).toLocaleString('ko-KR') + '~' +
+        (Math.round(ea * RANGE_HI / 10) * 10).toLocaleString('ko-KR') + '원/EA'
       : '';
     return q;
   }
